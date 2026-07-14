@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Porto en famille — 9 au 13 août 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --ink:#131313; --papier:#FDFBF4; --bleu:#1D63C7; --rouge:#E23B47;
+  --jaune:#FFC93C; --orange:#FF8F2E; --ocean:#1799B5; --vert:#2FA36B; --violet:#8A4FBE;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',-apple-system,sans-serif;background:var(--papier);color:var(--ink);line-height:1.6;font-size:17.5px}
+.bd{font-family:'Bangers',cursive;font-weight:400;letter-spacing:.04em}
+a{color:var(--bleu)}
+button{-webkit-tap-highlight-color:transparent}
+.halftone{background-image:radial-gradient(rgba(19,19,19,.14) 1.3px, transparent 1.3px);background-size:14px 14px}
+
+@keyframes pop{0%{transform:scale(.5) rotate(-4deg);opacity:0}70%{transform:scale(1.08) rotate(1deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes flotte{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(-2deg)}}
+@keyframes tremble{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(-4deg)}}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .55s ease,transform .55s ease}
+.reveal.vu{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none;transition:none}
+  header h1,header .badge,.ono{animation:none !important}
+}
+
+header{background:var(--bleu);color:#fff;text-align:center;padding:3rem 1.2rem 3.6rem;border-bottom:4px solid var(--ink);position:relative;overflow:hidden}
+header .badge{display:inline-block;background:var(--jaune);color:var(--ink);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:.3rem 1rem;font-weight:900;font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;transform:rotate(-2deg);margin-bottom:1.3rem;animation:flotte 4s ease-in-out infinite}
+header h1{font-family:'Bangers',cursive;font-size:clamp(3.6rem,13vw,6.5rem);line-height:1;letter-spacing:.05em;color:#fff;text-shadow:4px 4px 0 var(--ink);margin-bottom:.8rem;animation:pop .7s ease-out both}
+header .dates{display:inline-block;background:#fff;color:var(--ink);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:.45rem 1.1rem;font-weight:700;font-size:1rem}
+.ono{position:absolute;font-family:'Bangers',cursive;color:var(--ink);background:var(--jaune);border:3px solid var(--ink);padding:.25rem .8rem;font-size:1.25rem;box-shadow:3px 3px 0 var(--ink);animation:tremble 2.6s ease-in-out infinite}
+.ono.o1{top:16%;left:4%;transform:rotate(-8deg);background:var(--rouge);color:#fff}
+.ono.o2{bottom:14%;right:5%;transform:rotate(6deg)}
+@media(max-width:640px){.ono{display:none}}
+
+.tabs{background:#fff;border-bottom:4px solid var(--ink);padding:.7rem .5rem;position:sticky;top:0;z-index:1000;display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap}
+.tab-btn{font-family:'Nunito',sans-serif;font-weight:900;font-size:.88rem;color:var(--ink);background:#fff;border:2.5px solid var(--ink);box-shadow:2.5px 2.5px 0 var(--ink);padding:.32rem .75rem;border-radius:10px;cursor:pointer;transition:transform .12s,box-shadow .12s,background .15s}
+.tab-btn:active{transform:scale(.93)}
+.tab-btn[aria-selected="true"]{background:var(--jaune);transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+.tab-btn:focus-visible{outline:3px solid var(--bleu);outline-offset:2px}
+body.js-on .tab-panel{display:none}
+body.js-on .tab-panel.actif{display:block;animation:pop .35s ease-out both}
+
+main{max-width:820px;margin:0 auto;padding:2.4rem 1.2rem 3rem}
+.intro{background:#fff;border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);border-radius:14px;padding:1.2rem 1.4rem;font-size:1.06rem;font-weight:700;text-align:center;margin-bottom:2.4rem}
+
+.jours-nav{display:flex;gap:.45rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.jours-nav button{font-family:'Nunito',sans-serif;font-weight:900;font-size:.82rem;color:#fff;background:var(--dc,var(--bleu));border:2.5px solid var(--ink);box-shadow:2.5px 2.5px 0 var(--ink);padding:.28rem .75rem;border-radius:8px;cursor:pointer;transition:transform .12s}
+.jours-nav button:active{transform:scale(.93)}
+
+.day{background:#fff;border:3.5px solid var(--ink);box-shadow:7px 7px 0 var(--ink);border-radius:16px;margin-bottom:2.6rem;scroll-margin-top:84px;overflow:hidden}
+.day-head{display:flex;align-items:center;gap:1rem;padding:.9rem 1.3rem;border-bottom:3.5px solid var(--ink);background:var(--dc,var(--bleu));color:#fff}
+.day-num{font-family:'Bangers',cursive;font-size:2.4rem;line-height:1;background:#fff;color:var(--ink);border:3px solid var(--ink);width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:3px 3px 0 rgba(0,0,0,.35)}
+.day-head h2{font-family:'Bangers',cursive;font-size:1.85rem;line-height:1.05;letter-spacing:.05em;text-shadow:2.5px 2.5px 0 rgba(0,0,0,.4)}
+.day-head .day-date{font-weight:900;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;opacity:.95}
+.day-emoji{margin-left:auto;font-size:2.2rem;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.35))}
+.day-body{padding:1.4rem 1.4rem 1.6rem}
+.day-story{font-style:italic;font-weight:700;color:#3B3B3B;margin-bottom:1.3rem}
+
+/* Bandeaux photo (chargés depuis Wikipédia) */
+.photo-bande{display:none;height:170px;border-bottom:3.5px solid var(--ink);position:relative;background:#E8E4D8}
+.photo-bande.ok{display:block}
+.photo-bande img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-bande .credit{position:absolute;right:.4rem;bottom:.3rem;font-size:.62rem;font-weight:700;background:rgba(255,255,255,.85);border-radius:6px;padding:0 .4rem}
+
+.stop{display:flex;gap:1rem;padding:.85rem 0;border-top:2.5px dashed #C9C9C9}
+.stop:first-of-type{border-top:none;padding-top:0}
+.pin{flex:none;width:44px;height:44px;border-radius:50%;background:var(--dc,var(--bleu));color:#fff;border:3px solid var(--ink);box-shadow:2.5px 2.5px 0 var(--ink);display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.stop time{display:inline-block;background:var(--ink);color:#fff;font-weight:900;font-size:.78rem;letter-spacing:.08em;padding:.08rem .55rem;border-radius:6px;margin-bottom:.25rem}
+.stop h3{font-size:1.16rem;font-weight:900;line-height:1.25;margin-bottom:.2rem}
+.stop h3 a{color:var(--ink);text-decoration:none;border-bottom:3px solid var(--jaune)}
+.stop h3 a:hover{border-bottom-color:var(--rouge)}
+.stop p{font-size:.98rem}
+
+.tip{position:relative;display:block;background:var(--jaune);border:2.5px solid var(--ink);border-radius:14px;padding:.55rem .85rem;font-size:.92rem;font-weight:700;margin-top:.65rem;max-width:95%}
+.tip::after{content:"";position:absolute;top:-13px;left:26px;border:7px solid transparent;border-bottom:8px solid var(--ink)}
+.tip::before{content:"";position:absolute;top:-8px;left:28px;border:5px solid transparent;border-bottom:7px solid var(--jaune);z-index:1}
+.tip strong{text-transform:uppercase;letter-spacing:.04em}
+
+.map-section{margin-bottom:2.6rem;scroll-margin-top:84px}
+h2.titre-section{font-family:'Bangers',cursive;font-size:2.1rem;letter-spacing:.05em;text-align:center;margin-bottom:1rem;text-shadow:2.5px 2.5px 0 var(--jaune)}
+#carte{height:440px;border:3.5px solid var(--ink);box-shadow:7px 7px 0 var(--ink);border-radius:16px;z-index:1;background:#fff}
+.day-filters{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;margin-bottom:1rem}
+.day-filters button{font-family:'Nunito',sans-serif;font-weight:900;font-size:.82rem;padding:.35rem .8rem;border-radius:10px;border:2.5px solid var(--ink);box-shadow:2.5px 2.5px 0 var(--ink);background:var(--dc,#999);color:#fff;cursor:pointer;transition:transform .12s,box-shadow .12s,opacity .2s}
+.day-filters button:active{transform:scale(.93)}
+.day-filters button[aria-pressed="false"]{background:#fff;color:var(--ink);opacity:.6;box-shadow:none;transform:translate(2px,2px)}
+.map-note{text-align:center;font-size:.88rem;font-weight:700;color:#3B3B3B;margin-top:.7rem}
+.gmaps-links{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:1rem}
+.gmaps-links a{display:inline-flex;align-items:center;gap:.35rem;font-size:.86rem;font-weight:900;text-decoration:none;color:#fff;background:var(--dc,var(--bleu));padding:.45rem .9rem;border-radius:10px;border:2.5px solid var(--ink);box-shadow:2.5px 2.5px 0 var(--ink)}
+.gmaps-links a:active{transform:scale(.93)}
+.gmaps-links a::before{content:"➤";font-size:.7rem}
+.pin-diamond{background:transparent;border:none}
+.pin-diamond span{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;color:#fff;font-weight:900;font-size:.82rem;font-family:'Nunito',sans-serif;border:2.5px solid var(--ink);box-shadow:2px 2px 0 rgba(0,0,0,.4)}
+.leaflet-popup-content{font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:700;line-height:1.45}
+
+.grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.4rem;margin-top:1.4rem}
+.fiche{background:#fff;border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.fiche-head{display:flex;align-items:center;gap:.8rem;padding:.75rem 1.05rem;border-bottom:3px solid var(--ink);background:var(--fc,var(--bleu));color:#fff}
+.fiche-emoji{font-size:2rem;flex:none;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.35))}
+.fiche-head h3{font-family:'Bangers',cursive;font-size:1.35rem;letter-spacing:.04em;line-height:1.1;text-shadow:2px 2px 0 rgba(0,0,0,.35)}
+.fiche .photo-bande{height:150px}
+.fiche-body{padding:.95rem 1.05rem 1.05rem;display:flex;flex-direction:column;gap:.55rem;flex:1}
+.fiche-body p{font-size:.94rem}
+.badges{display:flex;flex-wrap:wrap;gap:.35rem}
+.badge-mini{font-size:.72rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase;border:2px solid var(--ink);border-radius:7px;padding:.06rem .5rem;background:var(--jaune)}
+.badge-mini.b2{background:#fff}
+.badge-mini.note{background:var(--vert);color:#fff}
+.badge-mini.viral{background:var(--violet);color:#fff}
+.fiche-actions{display:flex;gap:.5rem;margin-top:auto;padding-top:.4rem}
+.btn-choix{flex:1;font-family:'Nunito',sans-serif;font-weight:900;font-size:.85rem;padding:.42rem .6rem;border-radius:10px;border:2.5px solid var(--ink);box-shadow:2.5px 2.5px 0 var(--ink);background:#fff;color:var(--ink);cursor:pointer;transition:transform .12s,background .15s}
+.btn-choix:active{transform:scale(.93)}
+.btn-choix.choisi{background:var(--vert);color:#fff;transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+.btn-carte{flex:none;display:inline-flex;align-items:center;font-size:.85rem;font-weight:900;text-decoration:none;color:#fff;background:var(--bleu);padding:.42rem .8rem;border-radius:10px;border:2.5px solid var(--ink);box-shadow:2.5px 2.5px 0 var(--ink)}
+.btn-carte:active{transform:scale(.93)}
+.compteur{display:block;text-align:center;font-weight:900;margin-top:1.4rem;background:#fff;border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);border-radius:12px;padding:.65rem 1rem}
+.sous-titre{text-align:center;font-weight:700;max-width:640px;margin:0 auto 1rem}
+
+.pratique{background:#fff;border:3.5px solid var(--ink);box-shadow:7px 7px 0 var(--ink);border-radius:16px;margin-bottom:2rem;overflow:hidden}
+.pratique h2{font-family:'Bangers',cursive;font-size:1.65rem;letter-spacing:.05em;background:var(--jaune);border-bottom:3.5px solid var(--ink);padding:.6rem 1.3rem;text-shadow:2px 2px 0 rgba(255,255,255,.6)}
+.pratique .p-body{padding:1.2rem 1.4rem 1.4rem}
+.pratique p{margin-bottom:.85rem;font-size:.98rem}
+.pratique p:last-child{margin-bottom:0}
+.food-list{list-style:none;margin-top:.2rem}
+.food-list li{padding:.55rem 0;border-bottom:2.5px dashed #C9C9C9;font-size:.98rem}
+.food-list li:last-child{border-bottom:none}
+.food-list .plat{display:inline-block;font-weight:900;color:#fff;background:var(--rouge);border:2px solid var(--ink);border-radius:8px;padding:.02rem .5rem;margin-right:.3rem}
+
+footer{background:var(--ink);color:#fff;text-align:center;padding:2.4rem 1.2rem;border-top:4px solid var(--jaune)}
+footer .bd{font-size:2.4rem;color:var(--jaune);text-shadow:3px 3px 0 var(--rouge);display:block;margin-bottom:.4rem}
+footer p{font-weight:700;font-size:.9rem}
+
+@media(hover:hover){
+  .tab-btn:hover:not([aria-selected="true"]),.jours-nav button:hover,.gmaps-links a:hover,.btn-carte:hover{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+  .fiche{transition:transform .15s}
+  .fiche:hover{transform:translateY(-4px)}
+}
+@media (max-width:520px){
+  body{font-size:16.5px}
+  .day-num{width:48px;height:48px;font-size:2rem}
+  .day-head h2{font-size:1.5rem}
+  #carte{height:360px}
+  .tab-btn{font-size:.78rem;padding:.26rem .55rem}
+  .grille{grid-template-columns:1fr}
+}
+@media print{.tabs{position:static}body.js-on .tab-panel{display:block !important}header,footer,.day-head,.pratique h2,.fiche-head{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+
+<header class="halftone">
+  <span class="ono o1">WAOUH&nbsp;!</span>
+  <span class="ono o2">EM FRENTE&nbsp;!</span>
+  <p class="badge">🧳 Carnet de voyage en famille</p>
+  <h1>PORTO&nbsp;!</h1>
+  <p class="dates">☀️ Du dimanche 9 au jeudi 13 août 2026 · 5 jours entre Douro et Atlantique</p>
+</header>
+
+<div class="tabs" role="tablist" aria-label="Sections du carnet">
+  <button class="tab-btn" type="button" role="tab" aria-selected="true" data-panel="panneau-programme">📅 Programme</button>
+  <button class="tab-btn" type="button" role="tab" aria-selected="false" data-panel="panneau-restos">🍽️ Restos</button>
+  <button class="tab-btn" type="button" role="tab" aria-selected="false" data-panel="panneau-randos">🥾 Randos</button>
+  <button class="tab-btn" type="button" role="tab" aria-selected="false" data-panel="panneau-top">⭐ Immanquables</button>
+  <button class="tab-btn" type="button" role="tab" aria-selected="false" data-panel="panneau-pratique">🎒 Pratique</button>
+</div>
+
+<main>
+
+<!-- ═════════ PROGRAMME ═════════ -->
+<section class="tab-panel actif" id="panneau-programme">
+
+  <p class="intro">Cinq jours entre ruelles baroques, azulejos, quais du Douro et brise atlantique — visites le matin, fleuve et couchers de soleil en fin de journée. Em frente&nbsp;!</p>
+
+  <div class="jours-nav" aria-label="Aller à une journée">
+    <button type="button" style="--dc:#1D63C7" data-cible="j1">Dim 9</button>
+    <button type="button" style="--dc:#E23B47" data-cible="j2">Lun 10</button>
+    <button type="button" style="--dc:#FF8F2E" data-cible="j3">Mar 11</button>
+    <button type="button" style="--dc:#1799B5" data-cible="j4">Mer 12</button>
+    <button type="button" style="--dc:#2FA36B" data-cible="j5">Jeu 13</button>
+  </div>
+
+  <section class="map-section reveal" id="carte-section">
+    <h2 class="titre-section">🗺️ Nos itinéraires jour par jour</h2>
+    <div class="day-filters" id="filtres" role="group" aria-label="Afficher ou masquer les journées"></div>
+    <div id="carte" aria-label="Carte des itinéraires à Porto"><p id="carte-fallback" style="padding:1.4rem;text-align:center;font-weight:700">Si la carte ne se charge pas (aperçu iPhone), utilisez les boutons ci-dessous : ils ouvrent chaque parcours directement dans Google Maps.</p></div>
+    <p class="map-note">👆 Touchez un repère pour le détail d'une étape · touchez un jour pour l'afficher ou le masquer.</p>
+    <div class="gmaps-links" aria-label="Ouvrir les itinéraires dans Google Maps">
+      <a style="--dc:#1D63C7" href="https://www.google.com/maps/dir/?api=1&amp;origin=41.1406,-8.6131&amp;destination=41.1369,-8.6091&amp;waypoints=41.1400,-8.6094&amp;travelmode=walking">Dim 9</a>
+      <a style="--dc:#E23B47" href="https://www.google.com/maps/dir/?api=1&amp;origin=41.1469,-8.6148&amp;destination=41.1417,-8.6096&amp;waypoints=41.1457,-8.6146%7C41.1455,-8.6095%7C41.1429,-8.6111&amp;travelmode=walking">Lun 10</a>
+      <a style="--dc:#FF8F2E" href="https://www.google.com/maps/dir/?api=1&amp;origin=41.1385,-8.6120&amp;destination=41.1381,-8.6109&amp;waypoints=41.1369,-8.6193&amp;travelmode=walking">Mar 11</a>
+      <a style="--dc:#1799B5" href="https://www.google.com/maps/dir/?api=1&amp;origin=41.1483,-8.6255&amp;destination=41.1487,-8.6767&amp;waypoints=41.1404,-8.6155&amp;travelmode=transit">Mer 12</a>
+      <a style="--dc:#2FA36B" href="https://www.google.com/maps/dir/?api=1&amp;origin=41.1494,-8.6071&amp;destination=41.1467,-8.6067&amp;travelmode=walking">Jeu 13</a>
+    </div>
+  </section>
+
+  <section class="day reveal" id="j1" style="--dc:#1D63C7">
+    <div class="day-head">
+      <span class="day-num">1</span>
+      <div><p class="day-date">Dimanche 9 août</p><h2>Arrivée &amp; Ribeira</h2></div>
+      <span class="day-emoji">🌉</span>
+    </div>
+    <div class="photo-bande" data-wiki="en:Dom Luís I Bridge"><img alt="Pont Dom Luís I" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+    <div class="day-body">
+      <p class="day-story">Après l'installation, mise en jambes douce : descente vers le fleuve et première claque visuelle depuis le pont.</p>
+      <div class="stop"><span class="pin">🏘️</span><div><time>17h00</time>
+        <h3><a href="https://maps.google.com/?cid=9417178620025135452" target="_blank" rel="noopener">Praça da Ribeira</a></h3>
+        <p>Le cœur battant du vieux Porto, classé UNESCO. Façades colorées, ruelles médiévales, terrasses au bord de l'eau — parfait pour un premier apéritif face au fleuve.</p></div></div>
+      <div class="stop"><span class="pin">🌉</span><div><time>18h30</time>
+        <h3><a href="https://maps.google.com/?cid=14004858726612560555" target="_blank" rel="noopener">Pont Dom Luís I</a></h3>
+        <p>Traversez à pied le tablier supérieur (celui du métro) : vue vertigineuse sur les deux rives. Œuvre d'un disciple d'Eiffel — l'air de famille est frappant.</p></div></div>
+      <div class="stop"><span class="pin">🌅</span><div><time>19h30</time>
+        <h3><a href="https://maps.google.com/?cid=10917779990880659611" target="_blank" rel="noopener">Jardim do Morro</a></h3>
+        <p>Coucher de soleil sur Porto côté Gaia, ambiance guitare et pique-nique. Redescente en téléphérique ou à pied vers les quais pour dîner.</p></div></div>
+    </div>
+  </section>
+
+  <section class="day reveal" id="j2" style="--dc:#E23B47">
+    <div class="day-head">
+      <span class="day-num">2</span>
+      <div><p class="day-date">Lundi 10 août</p><h2>Le centre historique</h2></div>
+      <span class="day-emoji">📚</span>
+    </div>
+    <div class="photo-bande" data-wiki="en:Livraria Lello"><img alt="Livraria Lello" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+    <div class="day-body">
+      <p class="day-story">La journée « grands classiques » : librairie mythique, tour panoramique, gare aux azulejos, cathédrale... et fado pour finir. Tout se fait à pied.</p>
+      <div class="stop"><span class="pin">📚</span><div><time>09h00</time>
+        <h3><a href="https://www.livrarialello.pt/" target="_blank" rel="noopener">Livraria Lello</a></h3>
+        <p>L'une des plus belles librairies du monde : escalier pourpre, vitraux, boiseries néogothiques.</p>
+        <span class="tip"><strong>À réserver&nbsp;!</strong> Billets en ligne plusieurs jours avant, créneau de 9h à l'ouverture. Le billet (~12&nbsp;€) est déductible de l'achat d'un livre.</span></div></div>
+      <div class="stop"><span class="pin">🗼</span><div><time>10h30</time>
+        <h3><a href="https://www.torredosclerigos.pt/" target="_blank" rel="noopener">Torre dos Clérigos</a></h3>
+        <p>240 marches, mais la vue à 360° sur la ville récompense l'effort. Escalier étroit — à savoir si quelqu'un est claustrophobe.</p></div></div>
+      <div class="stop"><span class="pin">🚂</span><div><time>12h30</time>
+        <h3><a href="https://maps.google.com/?cid=1319433874625296190" target="_blank" rel="noopener">Gare São Bento</a></h3>
+        <p>Entrée libre : 20&nbsp;000 azulejos racontant l'histoire du Portugal dans le hall. Déjeuner ensuite Rua das Flores, juste à côté.</p></div></div>
+      <div class="stop"><span class="pin">⛪</span><div><time>15h30</time>
+        <h3><a href="https://maps.google.com/?cid=5340368308542978025" target="_blank" rel="noopener">Cathédrale Sé</a></h3>
+        <p>Forteresse romane dominant la ville. Le cloître gothique tapissé d'azulejos vaut les ~4&nbsp;€ d'entrée, et le parvis offre une belle vue gratuite.</p></div></div>
+      <div class="stop"><span class="pin">🎸</span><div><time>18h00</time>
+        <h3><a href="https://portofado.com/" target="_blank" rel="noopener">Concert de fado — Casa da Guitarra</a></h3>
+        <p>À deux pas de la cathédrale : 60 minutes de fado dans une boutique de lutherie, entouré de guitares portugaises accrochées aux murs, verre de porto offert. Format intimiste et horaire idéal en famille.</p>
+        <span class="tip"><strong>À réserver&nbsp;!</strong> Petite salle, août = haute saison — billets en ligne quelques jours avant (~15-20&nbsp;€).</span></div></div>
+    </div>
+  </section>
+
+  <section class="day reveal" id="j3" style="--dc:#FF8F2E">
+    <div class="day-head">
+      <span class="day-num">3</span>
+      <div><p class="day-date">Mardi 11 août</p><h2>Gaia, caves &amp; croisière</h2></div>
+      <span class="day-emoji">🍷</span>
+    </div>
+    <div class="photo-bande" data-wiki="en:Vila Nova de Gaia"><img alt="Caves de Vila Nova de Gaia" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+    <div class="day-body">
+      <p class="day-story">Journée rive gauche : croisière sous les six ponts le matin, cave de porto l'après-midi — plusieurs caves accueillent très bien les familles.</p>
+      <div class="stop"><span class="pin">🚤</span><div><time>10h30</time>
+        <h3>Croisière des 6 ponts — Cais de Gaia</h3>
+        <p>50 minutes sur le Douro pour passer sous les six ponts de la ville (~15-18&nbsp;€/adulte, réductions enfants). Départs fréquents des deux rives, sans réservation.</p></div></div>
+      <div class="stop"><span class="pin">🍷</span><div><time>14h30</time>
+        <h3><a href="http://www.winetourism.sogrape.com/" target="_blank" rel="noopener">Caves Ferreira</a></h3>
+        <p>La seule grande cave restée portugaise, réputée family-friendly (gratuit pour les enfants). L'histoire de Dona Antónia « Ferreirinha » est passionnante, dégustation pour les adultes.</p></div></div>
+      <div class="stop"><span class="pin">🎶</span><div><time>17h00</time>
+        <h3><a href="https://tour.calem.pt/" target="_blank" rel="noopener">Caves Cálem</a> <span style="font-weight:700;font-size:.85em">(alternative ou complément)</span></h3>
+        <p>Musée interactif ludique. Choisissez la formule <strong>visite + dégustation + concert de fado</strong> (~28&nbsp;€) : la journée à Gaia se conclut alors en musique, sans bouger.</p></div></div>
+    </div>
+  </section>
+
+  <section class="day reveal" id="j4" style="--dc:#1799B5">
+    <div class="day-head">
+      <span class="day-num">4</span>
+      <div><p class="day-date">Mercredi 12 août</p><h2>Tram, jardins &amp; océan</h2></div>
+      <span class="day-emoji">🌊</span>
+    </div>
+    <div class="photo-bande" data-wiki="pt:Foz do Douro"><img alt="Foz do Douro" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+    <div class="day-body">
+      <p class="day-story">Respiration au vert et au bleu : le tram historique longe le Douro jusqu'à l'Atlantique.</p>
+      <div class="stop"><span class="pin">🦚</span><div><time>09h30</time>
+        <h3><a href="https://maps.google.com/?cid=7236363821226401080" target="_blank" rel="noopener">Jardins do Palácio de Cristal</a></h3>
+        <p>Paons et coqs en liberté (gros succès garanti auprès des enfants), belvédères sur le Douro, entrée gratuite.</p></div></div>
+      <div class="stop"><span class="pin">🚋</span><div><time>11h30</time>
+        <h3>Tramway historique n°1 — arrêt Infante</h3>
+        <p>Voiture en bois et laiton (~5&nbsp;€) qui longe le fleuve jusqu'à Foz. Asseyez-vous côté fleuve, les enfants adorent.</p></div></div>
+      <div class="stop"><span class="pin">🏖️</span><div><time>12h15</time>
+        <h3>Foz do Douro</h3>
+        <p>Là où le Douro rencontre l'Atlantique : phare de Felgueiras, promenade Pérgola da Foz, plages (Praia dos Ingleses). Eau vivifiante (~17-18&nbsp;°C) mais baignade et château de sable possibles. Déjeuner face à l'océan.</p>
+        <span class="tip"><strong>Option&nbsp;:</strong> cette journée peut se transformer en excursion à Guimarães, berceau du Portugal (château médiéval, ~50 min de train depuis São Bento).</span></div></div>
+    </div>
+  </section>
+
+  <section class="day reveal" id="j5" style="--dc:#2FA36B">
+    <div class="day-head">
+      <span class="day-num">5</span>
+      <div><p class="day-date">Jeudi 13 août</p><h2>Marché, shopping &amp; départ</h2></div>
+      <span class="day-emoji">🧺</span>
+    </div>
+    <div class="photo-bande" data-wiki="pt:Mercado do Bolhão"><img alt="Mercado do Bolhão" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+    <div class="day-body">
+      <p class="day-story">Dernière matinée gourmande avant l'avion : marché, café Belle Époque et derniers souvenirs.</p>
+      <div class="stop"><span class="pin">🐟</span><div><time>09h00</time>
+        <h3><a href="http://www.mercadobolhao.pt/" target="_blank" rel="noopener">Mercado do Bolhão</a></h3>
+        <p>Marché historique superbement rénové : conserves de sardines illustrées, fromages, pastéis — idéal pour les souvenirs gourmands.</p>
+        <span class="tip"><strong>Astuce&nbsp;:</strong> allez-y tôt, la foule arrive vers 10h30.</span></div></div>
+      <div class="stop"><span class="pin">☕</span><div><time>10h30</time>
+        <h3>Café Majestic — Rua Santa Catarina</h3>
+        <p>Institution Belle Époque de 1921. Un peu touristique et cher, mais le décor vaut le café — puis derniers achats dans la rue commerçante avant de filer à l'aéroport.</p></div></div>
+    </div>
+  </section>
+
+</section>
+
+<!-- ═════════ RESTOS ═════════ -->
+<section class="tab-panel" id="panneau-restos">
+  <h2 class="titre-section">🍽️ Restos ludiques à tester</h2>
+  <p class="sous-titre">Les stars de Google Maps et des réseaux — notes et nombre d'avis à l'appui. Touchez « À tester&nbsp;! » pour cocher vos envies (mémorisées sur ce téléphone), et 📍 pour y aller.</p>
+
+  <div class="grille" id="liste-restos">
+
+    <article class="fiche reveal" style="--fc:#E23B47" data-resto="guedes">
+      <div class="fiche-head"><span class="fiche-emoji">🥪</span><h3>Casa Guedes</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,5 ★ · 19 500 avis</span><span class="badge-mini">~7 €</span><span class="badge-mini b2">Praça dos Poveiros</span></div>
+        <p>La légende du sandwich au porc rôti (<em>sande de pernil</em>), à demander avec fromage de brebis fondant (le n°15 avec oignons caramélisés fait fureur). Un rituel portuense.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ À tester&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Casa+Guedes+Tradicional+Poveiros+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#1D63C7" data-resto="santiago">
+      <div class="fiche-head"><span class="fiche-emoji">🥖</span><h3>Café Santiago</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,4 ★ · 18 100 avis</span><span class="badge-mini">~13 €</span><span class="badge-mini b2">Fermé dimanche</span></div>
+        <p>LE temple de la francesinha : pain, steak, saucisses, jambon, fromage fondu et sauce secrète à la bière. Une pour deux suffit largement — défi familial garanti&nbsp;!</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ À tester&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Cafe+Santiago+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#FF8F2E" data-resto="gazela">
+      <div class="fiche-head"><span class="fiche-emoji">🌭</span><h3>Gazela Cachorrinhos</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,6 ★ · 7 200 avis</span><span class="badge-mini">~5 €</span><span class="badge-mini viral">📱 Culte (Bourdain)</span></div>
+        <p>Les <em>cachorrinhos</em> : petits hot-dogs croustillants au fromage, coupés aux ciseaux sous vos yeux et rendus célèbres par Anthony Bourdain. Spectacle au comptoir, régal assuré. Fermé dimanche.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ À tester&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Gazela+Cachorrinhos+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#1799B5" data-resto="bacalhau">
+      <div class="fiche-head"><span class="fiche-emoji">🐟</span><h3>Casa Portuguesa do Pastel de Bacalhau</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini">~6 €</span><span class="badge-mini b2">Près des Clérigos</span><span class="badge-mini viral">📱 Star d'Instagram</span></div>
+        <p>Beignet de morue au fromage de la Serra... servi dans une boutique-palais où un organiste joue sur un véritable orgue à tuyaux. Les avis Google sont partagés (3,7★ — c'est touristique), mais le show et la terrasse du dernier étage valent le goûter.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ À tester&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Casa+Portuguesa+do+Pastel+de+Bacalhau+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#8A4FBE" data-resto="manteigaria">
+      <div class="fiche-head"><span class="fiche-emoji">🍮</span><h3>Manteigaria</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,8 ★ · 4 800 avis</span><span class="badge-mini">1,50 €</span><span class="badge-mini viral">📱 Viral TikTok</span></div>
+        <p>Les pastéis de nata sortent du four sous vos yeux derrière la vitre, et une cloche sonne à chaque fournée. Face à la Torre dos Clérigos — le goûter parfait du lundi. Ouvert jusqu'à minuit&nbsp;!</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ À tester&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Manteigaria+Clerigos+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#2FA36B" data-resto="beirario">
+      <div class="fiche-head"><span class="fiche-emoji">🥘</span><h3>Mercado Beira-Rio</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,4 ★ · 10 500 avis</span><span class="badge-mini">~10-15 €</span><span class="badge-mini b2">Top familles</span></div>
+        <p>Halle gourmande à Gaia où chacun choisit son stand — poulpe, pizzas, burgers, glaces — et tout le monde se retrouve à la même table. Zéro négociation de menu : le rêve parental. Idéal mardi soir après les caves.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ À tester&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Mercado+Beira-Rio+Vila+Nova+de+Gaia">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#E23B47" data-resto="cantina32">
+      <div class="fiche-head"><span class="fiche-emoji">🌼</span><h3>Cantina 32</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,3 ★ · 3 600 avis</span><span class="badge-mini">~20 €</span><span class="badge-mini b2">Réserver · fermé dim.</span></div>
+        <p>Bistrot créatif dans la plus jolie rue du centre (Rua das Flores). Poulpe entier réputé, et clou du spectacle pour les enfants : le cheesecake servi dans un pot de fleurs, avec sa « terre » en biscuit.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ À tester&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Cantina+32+Rua+das+Flores+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#1D63C7" data-resto="bolhao-conf">
+      <div class="fiche-head"><span class="fiche-emoji">🥐</span><h3>Confeitaria do Bolhão</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,3 ★ · 3 200 avis</span><span class="badge-mini">~5 €</span><span class="badge-mini b2">Dès 6h · fermé dim.</span></div>
+        <p>Pâtisserie de 1896 aux dorures et miroirs d'époque, face au marché : parfaite pour le petit-déjeuner du jeudi. Essayez le <em>pão de deus</em> (brioche à la noix de coco) — nom prometteur, promesse tenue.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ À tester&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Confeitaria+do+Bolhao+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <span class="compteur" data-panneau="panneau-restos">Aucun resto coché pour l'instant — à vos étoiles&nbsp;! ⭐</span>
+</section>
+
+<!-- ═════════ RANDOS ═════════ -->
+<section class="tab-panel" id="panneau-randos">
+  <h2 class="titre-section">🥾 Randos &amp; balades</h2>
+  <p class="sous-titre">Des passerelles spectaculaires d'Arouca aux balades du bord de mer : les sentiers les mieux notés de Google Maps autour de Porto, du plus sportif au plus poussette-compatible.</p>
+
+  <div class="grille" id="liste-randos">
+
+    <article class="fiche reveal" style="--fc:#2FA36B" data-resto="paiva">
+      <div class="fiche-head"><span class="fiche-emoji">🌉</span><h3>Passadiços do Paiva &amp; pont 516 Arouca</h3></div>
+      <div class="photo-bande" data-wiki="en:Paiva Walkways"><img alt="Passadiços do Paiva" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,7 ★ · 13 600 avis</span><span class="badge-mini">1h de route</span><span class="badge-mini viral">📱 Viral Instagram</span></div>
+        <p>8,7 km de passerelles en bois accrochées aux gorges de la rivière Paiva, plage fluviale pour se baigner à mi-parcours, et le pont suspendu piéton de 516 m (le frisson à 175 m au-dessus du vide, dès 6 ans accompagné). LA journée nature si vous louez une voiture — billets en ligne obligatoires, partez tôt (chaleur + escaliers).</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Passadicos+do+Paiva+Areinho+Arouca">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#E23B47" data-resto="bridgeclimb">
+      <div class="fiche-head"><span class="fiche-emoji">🧗</span><h3>Porto Bridge Climb</h3></div>
+      <div class="photo-bande" data-wiki="en:Arrábida Bridge"><img alt="Pont Arrábida" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,7 ★ · 1 200 avis</span><span class="badge-mini">~20 €</span><span class="badge-mini b2">Dès 12 ans</span></div>
+        <p>L'ascension guidée et sécurisée de l'arche du pont Arrábida, à 65 m au-dessus du Douro — la seule d'Europe sur un pont en béton classé. Les guides sont excellents et le créneau du coucher de soleil est magique. En ville, à Foz côté Ouro.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Porto+Bridge+Climb">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#1799B5" data-resto="parquecidade">
+      <div class="fiche-head"><span class="fiche-emoji">🦆</span><h3>Parque da Cidade → plage de Matosinhos</h3></div>
+      <div class="photo-bande" data-wiki="pt:Parque da Cidade do Porto"><img alt="Parque da Cidade" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,7 ★ · 28 700 avis</span><span class="badge-mini">~4-5 km plat</span><span class="badge-mini b2">Poussette OK</span></div>
+        <p>Le plus grand parc urbain du pays : lacs, canards dodus, pelouses à pique-nique... et il débouche directement sur l'océan et la plage de Matosinhos. Balade familiale sans dénivelé, retour en bus 500 ou métro. Le parc préféré des Portuenses.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Parque+da+Cidade+do+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#1D63C7" data-resto="foz-castelo">
+      <div class="fiche-head"><span class="fiche-emoji">🏰</span><h3>Balade côtière : Pérgola → Castelo do Queijo</h3></div>
+      <div class="photo-bande" data-wiki="pt:Castelo do Queijo"><img alt="Castelo do Queijo" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,4 ★ · 7 400 avis</span><span class="badge-mini">~3 km</span><span class="badge-mini b2">Prolonge le mer 12</span></div>
+        <p>Front de mer de Foz : pergola années folles, phares, criques et glaciers, jusqu'au « château du fromage » — petit fort du XVIIᵉ posé sur son rocher (entrée 0,50&nbsp;€&nbsp;!). Prolongement naturel de votre mercredi océan.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Castelo+do+Queijo+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#FF8F2E" data-resto="afurada">
+      <div class="fiche-head"><span class="fiche-emoji">⛴️</span><h3>Afurada, le village des pêcheurs</h3></div>
+      <div class="photo-bande" data-wiki="pt:São Pedro da Afurada"><img alt="Afurada" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini">Bac ~2 €</span><span class="badge-mini b2">Rive Gaia</span><span class="badge-mini b2">Sardines grillées</span></div>
+        <p>Traversez le Douro en petit bac (départ côté Ouro) vers ce village où le linge sèche encore dans la rue et où les sardines grillent sur le trottoir. Balade le long de l'estuaire jusqu'à la réserve naturelle et sa plage. Le Porto d'avant, à dix minutes du centre — chouchou des photographes.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Sao+Pedro+da+Afurada+Vila+Nova+de+Gaia">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#8A4FBE" data-resto="biologico">
+      <div class="fiche-head"><span class="fiche-emoji">🦉</span><h3>Parque Biológico de Gaia</h3></div>
+      <div class="photo-bande" data-wiki="pt:Parque Biológico de Gaia"><img alt="Parque Biológico de Gaia" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,7 ★ · 6 800 avis</span><span class="badge-mini">3 €</span><span class="badge-mini b2">Sentier 3 km</span></div>
+        <p>Boucle de 3 km entre volières, cerfs, loutres, moulins et fermes pédagogiques — les animaux blessés y sont soignés. Comptez 2-3 heures tranquilles, parfait pour souffler. À 15 min en taxi de Gaia (~3&nbsp;€/adulte, un des meilleurs rapports plaisir/prix du séjour).</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Parque+Biologico+de+Gaia+Avintes">📍</a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <span class="compteur" data-panneau="panneau-randos">Aucune rando cochée pour l'instant — à vos chaussures&nbsp;! 🥾</span>
+</section>
+
+<!-- ═════════ IMMANQUABLES ═════════ -->
+<section class="tab-panel" id="panneau-top">
+  <h2 class="titre-section">⭐ À ne pas manquer</h2>
+  <p class="sous-titre">Les pépites à glisser dans les temps libres — cochez aussi vos préférées&nbsp;!</p>
+
+  <div class="grille" id="liste-top">
+
+    <article class="fiche reveal" style="--fc:#1D63C7" data-resto="discoveries">
+      <div class="fiche-head"><span class="fiche-emoji">🧭</span><h3>World of Discoveries</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,4 ★ · 7 100 avis</span><span class="badge-mini">~15 €</span><span class="badge-mini b2">Fermé lundi&nbsp;!</span></div>
+        <p>Musée interactif sur les grands navigateurs portugais, avec une balade en barque à travers les décors des continents « découverts ». Le grand favori des familles — attention, fermé le lundi, visez mardi ou mercredi.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=World+of+Discoveries+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#1799B5" data-resto="sealife">
+      <div class="fiche-head"><span class="fiche-emoji">🦈</span><h3>Sea Life Porto</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,2 ★ · 12 500 avis</span><span class="badge-mini">~17 €</span><span class="badge-mini b2">Combine avec mer 12</span></div>
+        <p>Aquarium avec tunnel sous les requins, raies et manchots, juste à côté du Castelo do Queijo : parfait en complément de la journée océan, surtout si la brume s'invite.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Sea+Life+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#FF8F2E" data-resto="telepherique">
+      <div class="fiche-head"><span class="fiche-emoji">🚡</span><h3>Téléphérique de Gaia</h3></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini note">4,3 ★ · 2 300 avis</span><span class="badge-mini">7 € / 10 € A-R</span><span class="badge-mini b2">5 min de vue pure</span></div>
+        <p>Du Jardim do Morro aux quais de Gaia en survolant les toits des caves et le fleuve. Court mais spectaculaire — à caser dimanche soir ou mardi.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Teleferico+de+Gaia">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#1D63C7" data-resto="dragao">
+      <div class="fiche-head"><span class="fiche-emoji">⚽</span><h3>Stade du Dragão — FC Porto</h3></div>
+      <div class="photo-bande" data-wiki="en:Estádio do Dragão"><img alt="Estádio do Dragão" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini">~20 €</span><span class="badge-mini b2">Métro direct</span><span class="badge-mini b2">Fans de foot</span></div>
+        <p>Visite du stade et musée truffé de trophées (deux Ligues des Champions&nbsp;!). Accès direct en métro — jackpot si un membre de la famille vit ballon au pied.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Estadio+do+Dragao+museu+FC+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#8A4FBE" data-resto="casadamusica">
+      <div class="fiche-head"><span class="fiche-emoji">🎶</span><h3>Casa da Música</h3></div>
+      <div class="photo-bande" data-wiki="en:Casa da Música"><img alt="Casa da Música" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini">~12 €</span><span class="badge-mini b2">Boavista</span><span class="badge-mini b2">Pour les musiciens</span></div>
+        <p>Le vaisseau de béton de Rem Koolhaas se visite tous les jours (visites guidées, souvent en français l'été) : salles aux acoustiques folles et salle VIP couverte d'azulejos. Clin d'œil obligé pour un trompettiste.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Casa+da+Musica+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#2FA36B" data-resto="serralves">
+      <div class="fiche-head"><span class="fiche-emoji">🌳</span><h3>Parc de Serralves</h3></div>
+      <div class="photo-bande" data-wiki="en:Serralves"><img alt="Serralves" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini">~13-24 €</span><span class="badge-mini b2">Entre centre et Foz</span><span class="badge-mini b2">Demi-journée</span></div>
+        <p>18 hectares de jardins, un musée d'art contemporain, une villa Art déco rose bonbon et surtout le <em>Treetop Walk</em> : une passerelle qui serpente à la cime des arbres.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Serralves+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#E23B47" data-resto="carmo">
+      <div class="fiche-head"><span class="fiche-emoji">📸</span><h3>Igreja do Carmo &amp; la maison cachée</h3></div>
+      <div class="photo-bande" data-wiki="pt:Igreja do Carmo (Porto)"><img alt="Igreja do Carmo" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini">Gratuit (façade)</span><span class="badge-mini b2">Près de Lello</span><span class="badge-mini viral">📱 Spot photo n°1</span></div>
+        <p>La façade d'azulejos la plus photographiée de Porto — et un défi pour les enfants : trouver la <em>Casa Escondida</em>, maison de 1,5 m de large coincée entre les deux églises jumelles. À glisser lundi matin.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Igreja+do+Carmo+Porto">📍</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="fiche reveal" style="--fc:#1799B5" data-resto="leca">
+      <div class="fiche-head"><span class="fiche-emoji">🏊</span><h3>Piscines des marées de Leça</h3></div>
+      <div class="photo-bande" data-wiki="en:Leça Swimming Pools"><img alt="Piscines de Leça" loading="lazy"><span class="credit">📷 Wikimedia</span></div>
+      <div class="fiche-body">
+        <div class="badges"><span class="badge-mini">~10 €</span><span class="badge-mini b2">Leça da Palmeira</span><span class="badge-mini b2">Si grosse chaleur</span></div>
+        <p>Piscines d'eau de mer sculptées dans les rochers par l'architecte Álvaro Siza, chef-d'œuvre des années 60. Baignade atlantique sans les vagues — le plan B parfait si le mercure grimpe.</p>
+        <div class="fiche-actions">
+          <button type="button" class="btn-choix">⭐ On y va&nbsp;!</button>
+          <a class="btn-carte" href="https://www.google.com/maps/search/?api=1&amp;query=Piscina+das+Mares+Leca+da+Palmeira">📍</a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ═════════ PRATIQUE ═════════ -->
+<section class="tab-panel" id="panneau-pratique">
+  <h2 class="titre-section">🎒 Infos pratiques</h2>
+
+  <div class="pratique reveal">
+    <h2>🎫 À réserver avant de partir</h2>
+    <div class="p-body">
+      <p>La <strong>Livraria Lello</strong> est le seul point vraiment critique : en août, les billets partent vite — réservez sur <a href="https://www.livrarialello.pt/" target="_blank" rel="noopener">livrarialello.pt</a> dès que possible, créneau à 9h. Pour le fado et la cave de porto, une réservation en ligne quelques jours avant suffit (Ferreira et Cálem proposent des visites en français). Si vous tentez les <strong>Passadiços do Paiva</strong>, les billets (passerelles et pont 516) s'achètent uniquement en ligne. Tout le reste se fait sans réservation.</p>
+    </div>
+  </div>
+
+  <div class="pratique reveal">
+    <h2>🚇 Transports</h2>
+    <div class="p-body">
+      <p>Depuis l'aéroport, le <strong>métro ligne E</strong> (violette) dépose en centre-ville en ~30 minutes pour environ 2,50&nbsp;€/personne — inutile de prendre un taxi.</p>
+      <p>Sur place, tout se fait à pied, mais Porto est construite sur des <strong>pentes sévères</strong> entre la Ribeira en bas et le centre en haut. Bonnes chaussures pour tout le monde, et le <strong>funiculaire dos Guindais</strong> (du pont Luís I au quartier haut) dépanne quand les jambes fatiguent — les enfants le prennent pour une attraction en soi.</p>
+    </div>
+  </div>
+
+  <div class="pratique reveal">
+    <h2>🌤️ Climat d'août</h2>
+    <div class="p-body">
+      <p>Bien plus doux que dans le Gard : <strong>25-28&nbsp;°C</strong> l'après-midi avec la brise atlantique, matinées parfois fraîches, voire une brume océanique. Un petit pull pour les soirées sur les quais n'est pas superflu.</p>
+    </div>
+  </div>
+
+  <div class="pratique reveal">
+    <h2>🎸 Une soirée fado</h2>
+    <div class="p-body">
+      <p>Porto compte plus de vingt spectacles de fado quotidiens — chaque soirée du séjour est donc couverte. Trois valeurs sûres, à <strong>réserver en ligne quelques jours avant</strong> (salles de 30 à 60 places) :</p>
+      <ul class="food-list">
+        <li><span class="plat">Casa da Guitarra</span> concerts quotidiens de 60 min à 18h, verre de porto offert, ~15-20&nbsp;€. Prévu au programme du lundi 10. <a href="https://portofado.com/" target="_blank" rel="noopener">Réserver</a></li>
+        <li><span class="plat">Caves Cálem</span> formule visite + dégustation + fado à Gaia, idéale le mardi 11. <a href="https://tour.calem.pt/" target="_blank" rel="noopener">Réserver</a></li>
+        <li><span class="plat">Fado Maior do Porto</span> taverne centenaire à Miragaia, au bord du Douro : fado de Lisbonne et fado de Coimbra le même soir à 21h. <a href="https://www.google.com/maps/search/?api=1&amp;query=Fado+Maior+do+Porto" target="_blank" rel="noopener">Voir sur la carte</a></li>
+      </ul>
+      <p style="margin-top:.9rem">Pour info : António Zambujo ne passe pas à Porto en août (concert donné en avril dernier) — il revient au Coliseu du 5 au 9 janvier 2027 avec Miguel Araújo.</p>
+    </div>
+  </div>
+
+  <div class="pratique reveal">
+    <h2>🥘 À table</h2>
+    <div class="p-body">
+      <ul class="food-list">
+        <li><span class="plat">Francesinha</span> le sandwich-monument local, à partager vu le calibre.</li>
+        <li><span class="plat">Pastéis de nata</span> évidemment, à toute heure.</li>
+        <li><span class="plat">Tripas à moda do Porto</span> pour les aventureux ; c'est de là que vient le surnom des habitants, les <em>tripeiros</em>.</li>
+      </ul>
+      <p style="margin-top:.9rem">Sur les quais de la Ribeira, montez d'une ou deux ruelles pour trouver des adresses moitié moins chères que celles face au fleuve — et retrouvez nos adresses testées dans l'onglet 🍽️ Restos&nbsp;!</p>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<footer class="halftone">
+  <span class="bd">BOA VIAGEM&nbsp;!</span>
+  <p>Porto · 9 – 13 août 2026 · Carnet de la famille Feyer · Photos : Wikimedia Commons</p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  document.body.classList.add("js-on");
+
+  /* ── Stockage tolérant ── */
+  var memoire={};
+  function lireChoix(){
+    try{var v=localStorage.getItem("porto-choix");return v?JSON.parse(v):{};}
+    catch(e){return memoire;}
+  }
+  function ecrireChoix(c){
+    memoire=c;
+    try{localStorage.setItem("porto-choix",JSON.stringify(c));}catch(e){}
+  }
+
+  /* ── Onglets ── */
+  var boutonsOnglets=document.querySelectorAll(".tab-btn");
+  var panneaux=document.querySelectorAll(".tab-panel");
+  boutonsOnglets.forEach(function(b){
+    b.addEventListener("click",function(){
+      boutonsOnglets.forEach(function(x){x.setAttribute("aria-selected","false");});
+      b.setAttribute("aria-selected","true");
+      panneaux.forEach(function(p){p.classList.remove("actif");});
+      var panneau=document.getElementById(b.getAttribute("data-panel"));
+      panneau.classList.add("actif");
+      window.scrollTo({top:0,behavior:"smooth"});
+      revelePanneau(panneau);
+      if(b.getAttribute("data-panel")==="panneau-programme" && window.carteLeaflet){
+        setTimeout(function(){window.carteLeaflet.invalidateSize();},80);
+      }
+    });
+  });
+
+  /* ── Sous-navigation des jours ── */
+  document.querySelectorAll(".jours-nav button[data-cible]").forEach(function(b){
+    b.addEventListener("click",function(){
+      var cible=document.getElementById(b.getAttribute("data-cible"));
+      if(cible){
+        var y=cible.getBoundingClientRect().top+window.pageYOffset-76;
+        window.scrollTo({top:y,behavior:"smooth"});
+      }
+    });
+  });
+
+  /* ── Animations d'apparition ── */
+  var observateur=null;
+  if("IntersectionObserver" in window){
+    observateur=new IntersectionObserver(function(entrees){
+      entrees.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add("vu");observateur.unobserve(e.target);}
+      });
+    },{threshold:.1});
+  }
+  function revelePanneau(panneau){
+    panneau.querySelectorAll(".reveal:not(.vu)").forEach(function(el){
+      if(observateur){observateur.observe(el);}else{el.classList.add("vu");}
+    });
+  }
+  revelePanneau(document.getElementById("panneau-programme"));
+
+  /* ── Photos Wikipédia/Wikimedia (chargées à la volée, silencieuses hors ligne) ── */
+  function chargePhotos(){
+    if(!window.fetch){return;}
+    document.querySelectorAll("[data-wiki]").forEach(function(bloc){
+      var ref=bloc.getAttribute("data-wiki").split(":");
+      var langue=ref.shift();
+      var titre=ref.join(":");
+      var url="https://"+langue+".wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(titre.replace(/ /g,"_"));
+      fetch(url).then(function(r){return r.ok?r.json():null;}).then(function(d){
+        if(!d||!d.thumbnail||!d.thumbnail.source){return;}
+        var src=d.thumbnail.source.replace(/\/(\d+)px-/,"/800px-");
+        var img=bloc.querySelector("img");
+        img.addEventListener("load",function(){bloc.classList.add("ok");});
+        img.addEventListener("error",function(){
+          if(img.src!==d.thumbnail.source){img.src=d.thumbnail.source;}
+        });
+        img.src=src;
+      }).catch(function(){});
+    });
+  }
+  chargePhotos();
+
+  /* ── Boutons "À tester !" avec mémoire + compteurs ── */
+  var choix=lireChoix();
+  function majCompteurs(){
+    document.querySelectorAll(".compteur[data-panneau]").forEach(function(c){
+      var panneau=document.getElementById(c.getAttribute("data-panneau"));
+      var n=panneau.querySelectorAll(".btn-choix.choisi").length;
+      var vide=c.getAttribute("data-vide");
+      c.textContent=n===0?vide:(n===1?"1 idée dans votre sélection ✅":n+" idées dans votre sélection ✅");
+    });
+  }
+  document.querySelectorAll(".compteur[data-panneau]").forEach(function(c){
+    c.setAttribute("data-vide",c.textContent);
+  });
+  document.querySelectorAll(".fiche").forEach(function(f){
+    var id=f.getAttribute("data-resto");
+    var btn=f.querySelector(".btn-choix");
+    function peindre(){
+      var on=!!choix[id];
+      btn.classList.toggle("choisi",on);
+      btn.textContent=on?"✅ Choisi !":btn.getAttribute("data-libelle");
+    }
+    btn.setAttribute("data-libelle",btn.textContent);
+    peindre();
+    btn.addEventListener("click",function(){
+      choix[id]=!choix[id];
+      ecrireChoix(choix);
+      peindre();
+      majCompteurs();
+    });
+  });
+  majCompteurs();
+
+  /* ── Carte Leaflet ── */
+  function initCarte(){
+    var conteneur=document.getElementById("carte");
+    if(typeof L==="undefined"){return;}
+    conteneur.innerHTML="";
+  var jours=[
+    {nom:"Dim 9 — Ribeira",couleur:"#1D63C7",etapes:[
+      {n:"Praça da Ribeira",h:"17h00",lat:41.1406,lng:-8.6131},
+      {n:"Pont Dom Luís I",h:"18h30",lat:41.1400,lng:-8.6094},
+      {n:"Jardim do Morro",h:"19h30",lat:41.1369,lng:-8.6091}]},
+    {nom:"Lun 10 — Centre historique",couleur:"#E23B47",etapes:[
+      {n:"Livraria Lello",h:"09h00",lat:41.1469,lng:-8.6148},
+      {n:"Torre dos Clérigos",h:"10h30",lat:41.1457,lng:-8.6146},
+      {n:"Gare São Bento",h:"12h30",lat:41.1455,lng:-8.6095},
+      {n:"Cathédrale Sé",h:"15h30",lat:41.1429,lng:-8.6111},
+      {n:"Fado — Casa da Guitarra",h:"18h00",lat:41.1417,lng:-8.6096}]},
+    {nom:"Mar 11 — Gaia & caves",couleur:"#FF8F2E",etapes:[
+      {n:"Croisière des 6 ponts (Cais de Gaia)",h:"10h30",lat:41.1385,lng:-8.6120},
+      {n:"Caves Ferreira",h:"14h30",lat:41.1369,lng:-8.6193},
+      {n:"Caves Cálem",h:"17h00",lat:41.1381,lng:-8.6109}]},
+    {nom:"Mer 12 — Tram & océan",couleur:"#1799B5",etapes:[
+      {n:"Jardins do Palácio de Cristal",h:"09h30",lat:41.1483,lng:-8.6255},
+      {n:"Tram n°1 — arrêt Infante",h:"11h30",lat:41.1404,lng:-8.6155},
+      {n:"Foz do Douro",h:"12h15",lat:41.1487,lng:-8.6767}]},
+    {nom:"Jeu 13 — Marché & départ",couleur:"#2FA36B",etapes:[
+      {n:"Mercado do Bolhão",h:"09h00",lat:41.1494,lng:-8.6071},
+      {n:"Café Majestic",h:"10h30",lat:41.1467,lng:-8.6067}]}
+  ];
+
+  var carte=L.map("carte",{scrollWheelZoom:false});
+  window.carteLeaflet=carte;
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(carte);
+
+  var tout=[];
+  var filtres=document.getElementById("filtres");
+
+  jours.forEach(function(j,idx){
+    var groupe=L.layerGroup();
+    var pts=j.etapes.map(function(e){return [e.lat,e.lng];});
+    L.polyline(pts,{color:j.couleur,weight:5,opacity:.9,dashArray:idx===3?"9 7":null}).addTo(groupe);
+    j.etapes.forEach(function(e,i){
+      var ic=L.divIcon({className:"pin-diamond",iconSize:[28,28],iconAnchor:[14,14],
+        html:'<span style="background:'+j.couleur+'"><b>'+(i+1)+'</b></span>'});
+      L.marker([e.lat,e.lng],{icon:ic,title:e.n})
+        .bindPopup("<strong>"+e.n+"</strong><br>"+j.nom+" · "+e.h)
+        .addTo(groupe);
+    });
+    groupe.addTo(carte);
+    tout=tout.concat(pts);
+
+    var b=document.createElement("button");
+    b.textContent=j.nom;
+    b.style.setProperty("--dc",j.couleur);
+    b.setAttribute("aria-pressed","true");
+    b.addEventListener("click",function(){
+      var actif=b.getAttribute("aria-pressed")==="true";
+      if(actif){carte.removeLayer(groupe);}else{groupe.addTo(carte);}
+      b.setAttribute("aria-pressed",actif?"false":"true");
+    });
+    filtres.appendChild(b);
+  });
+
+  carte.fitBounds(L.latLngBounds(tout),{padding:[28,28]});
+  carte.on("click",function(){carte.scrollWheelZoom.enable();});
+  setTimeout(function(){carte.invalidateSize();},250);
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",initCarte);
+  }else{
+    initCarte();
+  }
+})();
+</script>
+</body>
+</html>
